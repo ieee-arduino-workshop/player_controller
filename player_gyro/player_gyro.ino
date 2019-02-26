@@ -2,7 +2,7 @@
 	18/02/2019 by Long Tran:  create a test project to read x_gyro and y_gyro sensor. 
 */
 #include"MPU6050.h" //call gyro sensor library
-#define THRESHOLD 5000 //sensitivity value (0 - 65535) for direction decision
+#define THRESHOLD 5000 //sensitivity value (-32767 to 32768) for direction decision
 
 void setup()
 {      
