@@ -4,6 +4,13 @@
 #include"MPU6050.h" //call gyro sensor library
 #define THRESHOLD 5000 //sensitivity value (-32767 to 32768) for direction decision
 
+// Global variables
+//  Constants variables
+const int button_pin = 2;
+const int led_pin = 13;
+//  Dynamic variables
+int button_state = 0;
+
 void setup()
 {      
 	// two variable below store the return data from MPU6050_read() function
@@ -41,6 +48,12 @@ void setup()
 
   // Clear the 'sleep' bit to start the sensor.
   MPU6050_write_reg (MPU6050_PWR_MGMT_1, 0);
+
+  // Setting the pins
+  //  Initialising the LED as an output for testing purposes
+  //  Initialsing the button as an input
+  pinMode(led_pin, OUTPUT);
+  pinMode(button_pin, INPUT);
 }
 
 void loop()
@@ -95,5 +108,21 @@ void loop()
 			Serial.print(F("DOWN  \n"));  
     else
 			Serial.print(F("      \n"));          
+  
+  // Read the state of the push button
+  button_state = digitalRead(button_pin);
+
+  // Check if the push button is pressed
+  if (button_state == HIGH)
+  {
+    // Turn ON the LED
+    digitalWrite(led_pin, HIGH);
+  } 
+  else
+  {
+    // Turn OFF the LED
+    digitalWrite(led_pin, LOW);
+  }
+  
   delay(100);
 }
