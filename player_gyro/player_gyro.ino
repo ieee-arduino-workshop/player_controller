@@ -61,7 +61,6 @@ void setup()
   pinMode(button_pin, INPUT);
 }
 
-
 void loop()
 {
   // Read the raw values.
@@ -146,11 +145,13 @@ void loop()
   {
     // Turn ON the LED
     digitalWrite(led_pin, HIGH);
+    Packet.kick = 1;
   }
   else
   {
     // Turn OFF the LED
     digitalWrite(led_pin, LOW);
+    Packet.kick = 0;
   }
 
   delay(200);
