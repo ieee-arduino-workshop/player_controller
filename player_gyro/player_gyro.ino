@@ -12,10 +12,10 @@
 //  Dynamic variables
 int button_state = 0;
 
+//create packet data fromn struct
 packet Packet;
 int error;
 accel_t_gyro_union accel_t_gyro;
-char a[16];
 
 void setup()
 {
@@ -36,23 +36,43 @@ void setup()
   //    The device is in sleep mode.
   //
   error = MPU6050_read(MPU6050_WHO_AM_I, &c, 1);
-  Serial.print(F("WHO_AM_I : "));
-  Serial.print(c, HEX);
-  Serial.print(F(", error = "));
-  Serial.println(error, DEC);
-
+  if (error == 0) //no error
+  {
+    Serial.print(F("WHO_AM_I : "));
+    Serial.print(c, HEX);
+    Serial.print(F(", error = "));
+    Serial.println(error, DEC);
+  }
+  else
+  {
+    Serial.println("Error in reading GYRO [-911]");
+  }
   // According to the datasheet, the 'sleep' bit
   // should read a '1'.
   // That bit has to be cleared, since the sensor
   // is in sleep mode at power-up.
   error = MPU6050_read(MPU6050_PWR_MGMT_1, &c, 1);
-  Serial.print(F("PWR_MGMT_1 : "));
-  Serial.print(c, HEX);
-  Serial.print(F(", error = "));
-  Serial.println(error, DEC);
-
+  if (!error) //similar to error ==0
+  {
+    Serial.print(F("PWR_MGMT_1 : "));
+    Serial.print(c, HEX);
+    Serial.print(F(", error = "));
+    Serial.println(error, DEC);
+  }
+  else
+  {
+    Serial.println("Error in reading GYRO [-912]");
+  }
   // Clear the 'sleep' bit to start the sensor.
-  MPU6050_write_reg(MPU6050_PWR_MGMT_1, 0);
+  error = MPU6050_write_reg(MPU6050_PWR_MGMT_1, 0);
+  if (!error) //if write successfully
+  {
+    Serial.println("Clear the 'sleep' bit successfully [913]");
+  }
+  else
+  {
+    Serial.println("Fail to clear the 'sleep' bit [-914]");
+  }
 
   // Setting the pins
   //  Initialising the LED as an output for testing purposes
@@ -60,6 +80,20 @@ void setup()
   pinMode(led_pin, OUTPUT);
   pinMode(button_pin, INPUT);
 }
+
+// Swap all high and low bytes.
+// After this, the registers values are swapped,
+// Why has to swap?
+// The AVR chip (on the Arduino board) has the Low Byte
+// at the lower address.
+// But the MPU-6050 has a different order: High Byte at
+// lower address, so that has to be corrected.
+// write function SWAP
+uint8_t swap;
+#define SWAP(x, y) \
+  swap = x;        \
+  x = y;           \
+  y = swap
 
 void loop()
 {
@@ -75,20 +109,6 @@ void loop()
   /*  Serial.print(F("Read accel, temp and gyro, error = "));
 	  Serial.println(error,DEC);
 	*/
-
-  // Swap all high and low bytes.
-  // After this, the registers values are swapped,
-  // Why has to swap?
-  // The AVR chip (on the Arduino board) has the Low Byte
-  // at the lower address.
-  // But the MPU-6050 has a different order: High Byte at
-  // lower address, so that has to be corrected.
-  // write function SWAP
-  uint8_t swap;
-#define SWAP(x, y) \
-  swap = x;        \
-  x = y;           \
-  y = swap
 
   //swap low and high byte of x_gyro and y_gyro
   SWAP(accel_t_gyro.reg.x_gyro_h, accel_t_gyro.reg.x_gyro_l);
@@ -145,14 +165,18 @@ void loop()
   {
     // Turn ON the LED
     digitalWrite(led_pin, HIGH);
-    Packet.kick = 1;
+
+    // no kick
+    Packet.kick = 0;
   }
   else
   {
     // Turn OFF the LED
     digitalWrite(led_pin, LOW);
-    Packet.kick = 0;
+
+    //Kick trigger
+    Packet.kick = 1;
   }
 
-  delay(200);
+  delay(50);
 }
