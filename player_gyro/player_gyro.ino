@@ -1,9 +1,6 @@
 /*
 	18/02/2019 by Long Tran:  create a test project to read x_gyro and y_gyro sensor. 
 */
-
-#include "Arduino_FreeRTOS.h"
-//#include <Arduino_FreeRTOS.h>
 #include "MPU6050.h"
 #include "packet.h"    //call gyro sensor library
 #define THRESHOLD 5000 //sensitivity value (-32767 to 32768) for direction decision
@@ -19,9 +16,6 @@ int button_state = 0;
 packet Packet;
 int error;
 accel_t_gyro_union accel_t_gyro;
-
-//create semaphore to protect data read, write.
-SemaphoreHandle_t binSemaphore_A = NULL;
 
 void setup()
 {
@@ -85,22 +79,6 @@ void setup()
   //  Initialsing the button as an input
   pinMode(led_pin, OUTPUT);
   pinMode(button_pin, INPUT);
-
-  /* Create binary semaphore */
-  vSemaphoreCreateBinary(binSemaphore_A);
-  if (!binSemaphore_A)
-  {
-    Serial.println(F("Creating sem successfully [13]"));
-  }
-  else
-  {
-    Serial.println(F("Failed to create Semaphore [-11]"));
-  }
-
-  //create 3 task in FreeRTOS
-  xTaskCreate(read_gyro, "Read Gyro", 100, NULL, 1, NULL);
-  xTaskCreate(ck_kick_bt, "ck_kick_bt", 100, NULL, 2, NULL);
-  xTaskCreate(print_status, "print_status", 100, NULL, 0, NULL);
 }
 
 // Swap all high and low bytes.
@@ -119,136 +97,86 @@ uint8_t swap;
 
 void loop()
 {
-}
+  // Read the raw values.
+  // Read 4 bytes at once,
+  // containing x_gyro (2 bytes) and y_gyro (2 bytes).
+  // With the default settings of the MPU-6050,
+  // there is no filter enabled, and the values
+  // are not very stable. But they are fine for left-right,up-down determination.
+  error = MPU6050_read(MPU6050_ACCEL_XOUT_H, (uint8_t *)&accel_t_gyro, sizeof(accel_t_gyro));
 
-/* task read_gyro with priority 1 */
-static void read_gyro(void *pvParameters)
-{
-  while (1)
+  //uncomment code below for debugging purposes.
+  /*  Serial.print(F("Read accel, temp and gyro, error = "));
+	  Serial.println(error,DEC);
+	*/
+
+  //swap low and high byte of x_gyro and y_gyro
+  SWAP(accel_t_gyro.reg.x_gyro_h, accel_t_gyro.reg.x_gyro_l);
+  SWAP(accel_t_gyro.reg.y_gyro_h, accel_t_gyro.reg.y_gyro_l);
+
+  // Determine direction
+  // Compare x_gyro and y_gyro value to a THRESHOLD number - it can be calibrated for the sensitivity
+  // process x_gyro
+  if (accel_t_gyro.value.x_gyro < -THRESHOLD)
   {
-
-    // Read the raw values.
-    // Read 4 bytes at once,
-    // containing x_gyro (2 bytes) and y_gyro (2 bytes).
-    // With the default settings of the MPU-6050,
-    // there is no filter enabled, and the values
-    // are not very stable. But they are fine for left-right,up-down determination.
-    error = MPU6050_read(MPU6050_ACCEL_XOUT_H, (uint8_t *)&accel_t_gyro, sizeof(accel_t_gyro));
-
-    //uncomment code below for debugging purposes.
-    /*  Serial.print(F("Read accel, temp and gyro, error = "));
-    Serial.println(error,DEC);
-  */
-
-    //swap low and high byte of x_gyro and y_gyro
-    SWAP(accel_t_gyro.reg.x_gyro_h, accel_t_gyro.reg.x_gyro_l);
-    SWAP(accel_t_gyro.reg.y_gyro_h, accel_t_gyro.reg.y_gyro_l);
-
-    //trigger sem to protect writing packet
-    Serial.println(F("read_gyro::Acquiring semaphore [123]"));
-    xSemaphoreTake(binSemaphore_A, portMAX_DELAY);
-
-    // Determine direction
-    // Compare x_gyro and y_gyro value to a THRESHOLD number - it can be calibrated for the sensitivity
-    // process x_gyro
-    if (accel_t_gyro.value.x_gyro < -THRESHOLD)
-    {
-      Serial.print(F("RIGHT \t"));
-      Packet.right = 1;
-    }
-    else if (accel_t_gyro.value.x_gyro > THRESHOLD)
-    {
-      Serial.print(F("LEFT  \t"));
-      Packet.left = 1;
-    }
-    else
-    {
-      Serial.print(F("      \t"));
-      //Packet.packet_data = Packet.packet_data & 0xFFE7 ;// 11111111 11100111;
-      Packet.left = 0;
-      Packet.right = 0;
-    }
-    //process y_gyro
-    if (accel_t_gyro.value.y_gyro > THRESHOLD)
-    {
-      Serial.print(F("UP   \n"));
-      Packet.up = 1;
-    }
-    else if (accel_t_gyro.value.y_gyro < -THRESHOLD)
-    {
-      Serial.print(F("DOWN  \n"));
-      Packet.down = 1;
-    }
-    else
-    {
-      Serial.print(F("      \n"));
-      Packet.down = 0;
-      Packet.up = 0;
-    }
-
-    //release sem
-    Serial.println(F("read_gyro::Releasing semaphore [123]"));
-    xSemaphoreGive(binSemaphore_A);
-    //Serial.println(F("Task1"));
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    Serial.print(F("RIGHT \t"));
+    Packet.right = 1;
   }
-}
-
-/* Task2 with priority 2 */
-static void ck_kick_bt(void *pvParameters)
-{
-  while (1)
+  else if (accel_t_gyro.value.x_gyro > THRESHOLD)
   {
-    // Read the state of the push button
-    button_state = digitalRead(button_pin);
-
-    Serial.println(F("ck_kick_bt::Acquiring semaphore [120]"));
-    xSemaphoreTake(binSemaphore_A, portMAX_DELAY);
-
-    // Check if the push button is pressed
-    if (button_state == HIGH)
-    {
-      // Turn ON the LED
-      digitalWrite(led_pin, HIGH);
-
-      // no kick
-      Packet.kick = 0;
-    }
-    else
-    {
-      // Turn OFF the LED
-      digitalWrite(led_pin, LOW);
-
-      //Kick trigger
-      Packet.kick = 1;
-    }
-
-    Serial.println(F("ck_kick_bt::Release semaphore [121]"));
-    xSemaphoreGive(binSemaphore_A);
-
-    // Serial.println(F("Task2"));
-    vTaskDelay(150 / portTICK_PERIOD_MS);
+    Serial.print(F("LEFT  \t"));
+    Packet.left = 1;
   }
-}
-
-/* Idle Task with priority Zero */
-static void print_status(void *pvParameters)
-{
-  while (1)
+  else
   {
-
-    Serial.println("---RLDUK|--ID--|");
-
-    Serial.println(F("print_status::Acquiring semaphore [119]"));
-    xSemaphoreTake(binSemaphore_A, portMAX_DELAY);
-
-    Serial.println(Packet.packet_data, BIN);
-
-    Serial.println(F("print_status::Release semaphore [120]"));
-    xSemaphoreGive(binSemaphore_A);
-
-    vTaskDelay(150 / portTICK_PERIOD_MS);
-    //Serial.println(F("Idle state"));
-    // delay(50);
+    Serial.print(F("      \t"));
+    //Packet.packet_data = Packet.packet_data & 0xFFE7 ;// 11111111 11100111;
+    Packet.left = 0;
+    Packet.right = 0;
   }
+  //process y_gyro
+  if (accel_t_gyro.value.y_gyro > THRESHOLD)
+  {
+    Serial.print(F("UP   \n"));
+    Packet.up = 1;
+  }
+  else if (accel_t_gyro.value.y_gyro < -THRESHOLD)
+  {
+    Serial.print(F("DOWN  \n"));
+    Packet.down = 1;
+  }
+  else
+  {
+    Serial.print(F("      \n"));
+    Packet.down = 0;
+    Packet.up = 0;
+  }
+  Serial.println("---RLDUK|--ID--|");
+
+  //a = itoa(Packet.packet_data, a, 2);
+  Serial.println(Packet.packet_data, BIN);
+  //Serial.println(a);
+
+  // Read the state of the push button
+  button_state = digitalRead(button_pin);
+
+  // Check if the push button is pressed
+  if (button_state == HIGH)
+  {
+    // Turn ON the LED
+    digitalWrite(led_pin, HIGH);
+
+    // no kick
+    Packet.kick = 0;
+  }
+  else
+  {
+    // Turn OFF the LED
+    digitalWrite(led_pin, LOW);
+
+    //Kick trigger
+    Packet.kick = 1;
+  }
+
+  delay(50);
 }
