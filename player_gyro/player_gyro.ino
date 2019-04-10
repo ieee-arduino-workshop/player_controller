@@ -3,10 +3,11 @@
 */
 
 #include "Arduino_FreeRTOS.h"
+#include "semphr.h"
 //#include <Arduino_FreeRTOS.h>
 #include "MPU6050.h"
 #include "packet.h"    //call gyro sensor library
-#define THRESHOLD 5000 //sensitivity value (-32767 to 32768) for direction decision
+#define THRESHOLD 2000 //sensitivity value (-32767 to 32768) for direction decision
 
 // Global variables
 //  Constants variables
