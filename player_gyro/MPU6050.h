@@ -42,10 +42,9 @@
 
 #include <Wire.h>
 
-#define MPU6050_WHO_AM_I 0x75           // R --------------------
-#define MPU6050_ACCEL_XOUT_H 0x3B       // R -------------------------
-#define MPU6050_PWR_MGMT_1 0x6B         // R/W ---------------------
-
+#define MPU6050_WHO_AM_I 0x75     // R --------------------
+#define MPU6050_ACCEL_XOUT_H 0x3B // R -------------------------
+#define MPU6050_PWR_MGMT_1 0x6B   // R/W ---------------------
 
 // The name of the sensor is "MPU-6050".
 // For program code, I omit the '-',
@@ -656,8 +655,15 @@ typedef union accel_t_gyro_union {
   } value;
 };
 
+/**
+ * @brief This is a common function to read multiple bytes from an I2C device.
+ * 
+ * @param start Start address, use a define for the register
+ * @param buffer A pointer to the data to write.
+ * @param size The number of bytes to write.
+ * @return int 
+ */
 int MPU6050_read(int start, uint8_t *buffer, int size);
-
 
 // --------------------------------------------------------
 // MPU6050_write
@@ -678,17 +684,28 @@ int MPU6050_read(int start, uint8_t *buffer, int size);
 //   int data = 0;        // the data to write
 //   MPU6050_write (MPU6050_PWR_MGMT_1, &c, 1);
 //
+
+/**
+ * @brief This is a common function to write multiple bytes to an I2C device.
+ * 
+ * @param start Start address, use a define for the register
+ * @param pData A pointer to the data to write.
+ * @param size The number of bytes to write.
+ * @return int 
+ */
 int MPU6050_write(int start, const uint8_t *pData, int size);
 
 
-// --------------------------------------------------------
-// MPU6050_write_reg
-//
-// An extra function to write a single register.
-// It is just a wrapper around the MPU_6050_write()
-// function, and it is only a convenient function
-// to make it easier to write a single register.
-//
-
+/**
+ * @brief MPU6050_write_reg
+ * 
+ * An extra function to write a single register.
+ * It is just a wrapper around the MPU_6050_write()
+ * function, and it is only a convenient function
+ * to make it easier to write a single register.
+ * 
+ * @param reg 
+ * @param data 
+ * @return int 
+ */
 int MPU6050_write_reg(int reg, uint8_t data);
-
