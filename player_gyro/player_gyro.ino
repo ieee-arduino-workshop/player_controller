@@ -7,7 +7,18 @@
 //#include "timers.h"
 //#include <Arduino_FreeRTOS.h>
 #include "MPU6050.h"
-#include "packet.h"    //call gyro sensor library
+#include "packet.h" //call gyro sensor library
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+
+#define CE 5   //pin CE on NRF24L01
+#define CSN 10 //pin CSN on NRF24L01
+
+// MOSI: pin 11
+//  MISO: pin 12
+//  SCK: pin 13
+
 #define THRESHOLD 3500 //sensitivity value (-32767 to 32768) for direction decision
 
 // Global variables
@@ -29,6 +40,11 @@ SemaphoreHandle_t binSemaphore_A = NULL;
 TaskHandle_t gyro_TaskHandle;
 TaskHandle_t kick_TaskHandle;
 TaskHandle_t print_TaskHandle;
+TaskHandle_t radio_TaskHandle;
+
+///radio object for NRF24L01
+RF24 radio(CE, CSN); // CE, CSN
+const byte address[6] = "00001";
 
 void setup()
 {
@@ -104,13 +120,20 @@ void setup()
     Serial.println(F("Failed to create Semaphore [-11]"));
   }
 
-  /* Use INT0(pin2) falling edge interrupt for resuming tasks */
+  ///set up NRF24L01
+  radio.begin();
+  radio.openWritingPipe(address);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.stopListening();
+
+  /* Use INT0(pin2) falling edge interrupt for detect button tasks */
   attachInterrupt(digitalPinToInterrupt(button_pin), Detect_kick_bt, FALLING);
 
   //create 3 task in FreeRTOS
   xTaskCreate(read_gyro, "Read Gyro", 100, NULL, 3, &gyro_TaskHandle);
   xTaskCreate(ck_kick_bt, "ck_kick_bt", 100, NULL, 0, &kick_TaskHandle);
   xTaskCreate(print_status, "print_status", 100, NULL, 2, &print_TaskHandle);
+  //xTaskCreate(RF_send, "RF send", 100, NULL, 2, &radio_TaskHandle);
 }
 
 static void Detect_kick_bt()
@@ -282,6 +305,44 @@ static void print_status(void *pvParameters)
     xSemaphoreGive(binSemaphore_A);
 
     vTaskDelay(150 / portTICK_PERIOD_MS);
+    //Serial.println(F("Idle state"));
+    // delay(50);
+  }
+}
+
+static void RF_send(void *pvParameters)
+{
+  vTaskSuspend(kick_TaskHandle);
+  while (1)
+  {
+
+    // Serial.println(Packet.packet_data, BIN);
+
+    char *text = (char *)malloc(50);
+    strcpy(text,"hello");
+    radio.write(text, strlen(text)+1);
+    xSemaphoreTake(binSemaphore_A, portMAX_DELAY);
+    //snprintf(text,50, "%d", Packet.packet_data);
+
+    //itoa(Packet.packet_data, text, 2);
+    // radio.write(&text, sizeof(text));
+    // radio.write(&text, strlen(text));
+    //Serial.println(F("RF_send::print text need to be sent [62]"));
+    //Serial.println((text));
+    //Serial.println((text));
+    //reset kick
+    Packet.kick = 1;
+    digitalWrite(led_pin, LOW);
+
+    Serial.println(Packet.packet_data, BIN);
+    Serial.println(Packet.packet_data, DEC);
+    Serial.println(Packet.packet_data, HEX);
+    xSemaphoreGive(binSemaphore_A);
+    // Serial.println(text);
+
+    free(text);
+
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
     //Serial.println(F("Idle state"));
     // delay(50);
   }
