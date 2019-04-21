@@ -1,6 +1,11 @@
 typedef union {
     uint16_t packet_data;
 
+    // struct
+    // {
+    //     uint8_t first_byte_data;
+    //     uint8_t second_byte_data;
+    // };
     struct
     {
         uint8_t player_id : 8;

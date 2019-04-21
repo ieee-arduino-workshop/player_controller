@@ -132,8 +132,8 @@ void setup()
   //create 3 task in FreeRTOS
   xTaskCreate(read_gyro, "Read Gyro", 100, NULL, 3, &gyro_TaskHandle);
   xTaskCreate(ck_kick_bt, "ck_kick_bt", 100, NULL, 0, &kick_TaskHandle);
-  xTaskCreate(print_status, "print_status", 100, NULL, 2, &print_TaskHandle);
-  //xTaskCreate(RF_send, "RF send", 100, NULL, 2, &radio_TaskHandle);
+  //xTaskCreate(print_status, "print_status", 100, NULL, 2, &print_TaskHandle);
+  xTaskCreate(RF_send, "RF_send", 100, NULL, 0, &radio_TaskHandle);
 }
 
 static void Detect_kick_bt()
@@ -318,15 +318,20 @@ static void RF_send(void *pvParameters)
 
     // Serial.println(Packet.packet_data, BIN);
 
-    char *text = (char *)malloc(50);
-    strcpy(text,"hello");
-    radio.write(text, strlen(text)+1);
+    //char *text = (char *)malloc(50);
+    //strcpy(text,"hello");
+    //sprintf2(text, "hello");
+    //radio.write(text, strlen(text) + 1);
+
+    // radio.write("hello", strlen(text)+1);
     xSemaphoreTake(binSemaphore_A, portMAX_DELAY);
     //snprintf(text,50, "%d", Packet.packet_data);
 
     //itoa(Packet.packet_data, text, 2);
     // radio.write(&text, sizeof(text));
-    // radio.write(&text, strlen(text));
+    radio.write(&Packet.packet_data, 2);
+    // vTaskDelay(150 / portTICK_PERIOD_MS);
+    // radio.write(&Packet.second_byte_data, 1);
     //Serial.println(F("RF_send::print text need to be sent [62]"));
     //Serial.println((text));
     //Serial.println((text));
@@ -337,12 +342,14 @@ static void RF_send(void *pvParameters)
     Serial.println(Packet.packet_data, BIN);
     Serial.println(Packet.packet_data, DEC);
     Serial.println(Packet.packet_data, HEX);
+    // Serial.println(Packet.first_byte_data, BIN);
+    // Serial.println(Packet.second_byte_data, BIN);
     xSemaphoreGive(binSemaphore_A);
     // Serial.println(text);
 
-    free(text);
+    // free(text);
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    vTaskDelay(150 / portTICK_PERIOD_MS);
     //Serial.println(F("Idle state"));
     // delay(50);
   }
