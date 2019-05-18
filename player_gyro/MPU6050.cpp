@@ -1,28 +1,57 @@
-/*
-* Arduino Wireless Communication Tutorial
-*     Example 1 - Transmitter Code
-*                
-* by Dejan Nedelkovski, www.HowToMechatronics.com
-* 
-* Library: TMRh20/RF24, https://github.com/tmrh20/RF24/
-*/
+#include "MPU6050.h"
 
-#include <SPI.h>
-#include <nRF24L01.h>
-#include <RF24.h>
 
-RF24 radio(7, 8); // CE, CSN
-const byte address[6] = "00001";
+int MPU6050_read(int start, uint8_t *buffer, int size)
+{
+  int i, n, error;
 
-void setup() {
-    radio.begin();
-    radio.openWritingPipe(address);
-    radio.setPALevel(RF24_PA_MIN);
-    radio.stopListening();
+  Wire.beginTransmission(MPU6050_I2C_ADDRESS);
+  n = Wire.write(start);
+  if (n != 1)
+    return (-10);
+
+  n = Wire.endTransmission(false); // hold the I2C-bus
+  if (n != 0)
+    return (n);
+
+  // Third parameter is true: relase I2C-bus after data is read.
+  Wire.requestFrom(MPU6050_I2C_ADDRESS, size, true);
+  i = 0;
+  while (Wire.available() && i < size)
+  {
+    buffer[i++] = Wire.read();
+  }
+  if (i != size)
+    return (-11);
+
+  return (0); // return : no error
 }
 
-void loop() {
-    const char text[] = "Hello World";
-    radio.write(&text, sizeof(text));
-    delay(1000);
+int MPU6050_write(int start, const uint8_t *pData, int size)
+{
+  int n, error;
+
+  Wire.beginTransmission(MPU6050_I2C_ADDRESS);
+  n = Wire.write(start); // write the start address
+  if (n != 1)
+    return (-20);
+
+  n = Wire.write(pData, size); // write data bytes
+  if (n != size)
+    return (-21);
+
+  error = Wire.endTransmission(true); // release the I2C-bus
+  if (error != 0)
+    return (error);
+
+  return (0); // return : no error
+}
+
+int MPU6050_write_reg(int reg, uint8_t data)
+{
+  int error;
+
+  error = MPU6050_write(reg, &data, 1);
+
+  return (error);
 }
