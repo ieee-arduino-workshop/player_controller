@@ -2,10 +2,11 @@
 	18/02/2019 by Long Tran:  create a test project to read x_gyro and y_gyro sensor. 
 */
 
-#include "Arduino_FreeRTOS.h"
-#include "semphr.h"
+//#include "Arduino_FreeRTOS.h"
+
 //#include "timers.h"
-//#include <Arduino_FreeRTOS.h>
+#include <Arduino_FreeRTOS.h>
+#include <semphr.h>
 #include "MPU6050.h"
 #include "packet.h" //call gyro sensor library
 #include <SPI.h>
