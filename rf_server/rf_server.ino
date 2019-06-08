@@ -28,6 +28,7 @@ void setup()
 
 void print_data(packet player)
 {
+  Serial.print("-----------------------------------------------\n");
   Serial.print("Player ID: ");
   Serial.println(player1.player_id, BIN);
 
@@ -55,10 +56,11 @@ void print_data(packet player)
   }
   else
   {
-    Serial.print(F("\n"));
+    Serial.print(F("\n-------------------------------------------\n"));
   }
 }
 
+uint16_t prev_value = 0;
 void loop()
 {
   if (radio.available())
@@ -68,7 +70,12 @@ void loop()
     //radio.read(&text, sizeof(text));
     //Serial.println(text,BIN);
     radio.read(&player1.packet_data, sizeof(player1.packet_data));
-    Serial.println(player1.packet_data, BIN);
-    print_data(player1);
+    //Serial.println(player1.packet_data, BIN);
+
+    if (prev_value != player1.packet_data)
+    {
+      print_data(player1);
+    }
+    prev_value = player1.packet_data;
   }
 }

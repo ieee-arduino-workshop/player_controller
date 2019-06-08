@@ -228,7 +228,7 @@ static void read_gyro(void *pvParameters)
     {
       Serial.print(F("DOWN  \t"));
       Packet.down = 1;
-    }     
+    }
     else
     {
       Serial.print(F("      \t"));
@@ -237,16 +237,14 @@ static void read_gyro(void *pvParameters)
     }
 
     //print shoot status
-    if(Packet.kick == 1)
+    if (Packet.kick == 1)
     {
-      Serial.print(F("\t SHOOT \n"));     
+      Serial.print(F("\t SHOOT \n"));
     }
     else
     {
-      Serial.print(F("\n"));     
+      Serial.print(F("\n"));
     }
-    
-
 
     //release sem
     if (DEBUG)
@@ -348,7 +346,7 @@ static void RF_send(void *pvParameters)
     //Serial.println(F("RF_send::print text need to be sent [62]"));
     //Serial.println((text));
     //Serial.println((text));
-    
+
     Serial.println(Packet.packet_data, BIN);
     Serial.println(Packet.packet_data, DEC);
     Serial.println(Packet.packet_data, HEX);
