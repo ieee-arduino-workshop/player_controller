@@ -221,20 +221,32 @@ static void read_gyro(void *pvParameters)
     //process y_gyro
     if (accel_t_gyro.value.y_gyro > THRESHOLD)
     {
-      Serial.print(F("UP   \n"));
+      Serial.print(F("UP   \t"));
       Packet.up = 1;
     }
     else if (accel_t_gyro.value.y_gyro < -THRESHOLD)
     {
-      Serial.print(F("DOWN  \n"));
+      Serial.print(F("DOWN  \t"));
       Packet.down = 1;
-    }
+    }     
     else
     {
-      Serial.print(F("      \n"));
+      Serial.print(F("      \t"));
       Packet.down = 0;
       Packet.up = 0;
     }
+
+    //print shoot status
+    if(Packet.kick == 1)
+    {
+      Serial.print(F("\t SHOOT \n"));     
+    }
+    else
+    {
+      Serial.print(F("\n"));     
+    }
+    
+
 
     //release sem
     if (DEBUG)
@@ -263,8 +275,8 @@ static void ck_kick_bt(void *pvParameters)
     // Turn ON the LED
     digitalWrite(led_pin, HIGH);
 
-    // no kick
-    Packet.kick = 0;
+    //kick
+    Packet.kick = 1;
     // }
     // else
     // {
@@ -336,15 +348,16 @@ static void RF_send(void *pvParameters)
     //Serial.println(F("RF_send::print text need to be sent [62]"));
     //Serial.println((text));
     //Serial.println((text));
-    //reset kick
-    Packet.kick = 1;
-    digitalWrite(led_pin, LOW);
-
+    
     Serial.println(Packet.packet_data, BIN);
     Serial.println(Packet.packet_data, DEC);
     Serial.println(Packet.packet_data, HEX);
     // Serial.println(Packet.first_byte_data, BIN);
     // Serial.println(Packet.second_byte_data, BIN);
+
+    //reset kick
+    Packet.kick = 0;
+    digitalWrite(led_pin, LOW);
     xSemaphoreGive(binSemaphore_A);
     // Serial.println(text);
 
