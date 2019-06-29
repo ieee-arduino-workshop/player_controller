@@ -13,14 +13,15 @@
 #include <nRF24L01.h>
 #include <RF24.h>
 
-#define CE 5   //pin CE on NRF24L01
-#define CSN 10 //pin CSN on NRF24L01
+#define CE 5        //pin CE on NRF24L01
+#define CSN 10      //pin CSN on NRF24L01
+#define PLAYER_NO 0 //choose from 0 - 5
 
 // MOSI: pin 11
 //  MISO: pin 12
 //  SCK: pin 13
 
-#define THRESHOLD 3500 //sensitivity value (-32767 to 32768) for direction decision
+#define THRESHOLD 1000 //sensitivity value (-32767 to 32768) for direction decision
 
 // Global variables
 //  Constants variables
@@ -45,14 +46,14 @@ TaskHandle_t radio_TaskHandle;
 
 ///radio object for NRF24L01
 RF24 radio(CE, CSN); // CE, CSN
-const byte address[6] = "00001";
-
+// const byte address[6] = "00001";
+const uint64_t address[] = {0x7878787878LL, 0xB3B4B5B6F1LL, 0xB3B4B5B6CDLL, 0xB3B4B5B6A3LL, 0xB3B4B5B60FLL, 0xB3B4B5B605LL};
 void setup()
 {
   // two variable below store the return data from MPU6050_read() function
   int error;
   uint8_t c;
-  Packet.packet_data = 0xFFFF;
+  Packet.packet_data = 0xFF01 + PLAYER_NO;
   // Initialize serial port for monitoring
   Serial.begin(115200);
 
@@ -123,8 +124,9 @@ void setup()
 
   ///set up NRF24L01
   radio.begin();
-  radio.openWritingPipe(address);
-  radio.setPALevel(RF24_PA_MIN);
+  radio.openWritingPipe(address[PLAYER_NO]);
+  // radio.setPALevel(RF24_PA_MIN);
+  radio.setPALevel(RF24_PA_LOW);
   radio.stopListening();
 
   /* Use INT0(pin2) falling edge interrupt for detect button tasks */
@@ -219,12 +221,12 @@ static void read_gyro(void *pvParameters)
       Packet.right = 0;
     }
     //process y_gyro
-    if (accel_t_gyro.value.y_gyro > THRESHOLD)
+    if (accel_t_gyro.value.y_gyro < -THRESHOLD)
     {
       Serial.print(F("UP   \t"));
       Packet.up = 1;
     }
-    else if (accel_t_gyro.value.y_gyro < -THRESHOLD)
+    else if (accel_t_gyro.value.y_gyro > THRESHOLD)
     {
       Serial.print(F("DOWN  \t"));
       Packet.down = 1;
