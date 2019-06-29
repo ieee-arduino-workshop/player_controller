@@ -53,7 +53,7 @@ void setup()
   // two variable below store the return data from MPU6050_read() function
   int error;
   uint8_t c;
-  Packet.packet_data = 0xFF01 + PLAYER_NO;
+  Packet.packet_data = 0xFF00 + PLAYER_NO;
   // Initialize serial port for monitoring
   Serial.begin(115200);
 
@@ -127,6 +127,7 @@ void setup()
   
   
   radio.openWritingPipe(address[PLAYER_NO%6]);
+  // radio.openWritingPipe(address[0]);
   // radio.setPALevel(RF24_PA_MIN);
   radio.setPALevel(RF24_PA_LOW);
   radio.stopListening();
