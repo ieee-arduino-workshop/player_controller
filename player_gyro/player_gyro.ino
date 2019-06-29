@@ -126,7 +126,7 @@ void setup()
   radio.begin();
   
   
-  radio.openWritingPipe(address[PLAYER_NO/6]);
+  radio.openWritingPipe(address[PLAYER_NO%6]);
   // radio.setPALevel(RF24_PA_MIN);
   radio.setPALevel(RF24_PA_LOW);
   radio.stopListening();
