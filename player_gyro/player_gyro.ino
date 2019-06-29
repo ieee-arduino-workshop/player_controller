@@ -15,7 +15,7 @@
 
 #define CE 5        //pin CE on NRF24L01
 #define CSN 10      //pin CSN on NRF24L01
-#define PLAYER_NO 0 //choose from 0 - 5
+#define PLAYER_NO 1 //choose from 1 - 12
 
 // MOSI: pin 11
 //  MISO: pin 12
@@ -124,7 +124,9 @@ void setup()
 
   ///set up NRF24L01
   radio.begin();
-  radio.openWritingPipe(address[PLAYER_NO]);
+  
+  
+  radio.openWritingPipe(address[PLAYER_NO/6]);
   // radio.setPALevel(RF24_PA_MIN);
   radio.setPALevel(RF24_PA_LOW);
   radio.stopListening();
