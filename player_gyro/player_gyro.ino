@@ -124,9 +124,8 @@ void setup()
 
   ///set up NRF24L01
   radio.begin();
-  
-  
-  radio.openWritingPipe(address[PLAYER_NO%6]);
+
+  radio.openWritingPipe(address[PLAYER_NO % 6]);
   // radio.openWritingPipe(address[0]);
   // radio.setPALevel(RF24_PA_MIN);
   radio.setPALevel(RF24_PA_LOW);
