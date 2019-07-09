@@ -48,6 +48,14 @@ TaskHandle_t radio_TaskHandle;
 RF24 radio(CE, CSN); // CE, CSN
 // const byte address[6] = "00001";
 const uint64_t address[] = {0x7878787878LL, 0xB3B4B5B6F1LL, 0xB3B4B5B6CDLL, 0xB3B4B5B6A3LL, 0xB3B4B5B60FLL, 0xB3B4B5B605LL};
+
+
+void initGyro()
+{
+
+
+
+}
 void setup()
 {
   // two variable below store the return data from MPU6050_read() function
@@ -112,7 +120,7 @@ void setup()
   pinMode(button_pin, INPUT);
 
   /* Create binary semaphore */
-  vSemaphoreCreateBinary(binSemaphore_A);
+  // vSemaphoreCreateBinary(binSemaphore_A);
   if (!binSemaphore_A)
   {
     Serial.println(F("Creating sem successfully [13]"));
@@ -134,11 +142,11 @@ void setup()
   /* Use INT0(pin2) falling edge interrupt for detect button tasks */
   attachInterrupt(digitalPinToInterrupt(button_pin), Detect_kick_bt, FALLING);
 
-  //create 3 task in FreeRTOS
-  xTaskCreate(read_gyro, "Read Gyro", 100, NULL, 3, &gyro_TaskHandle);
-  xTaskCreate(ck_kick_bt, "ck_kick_bt", 100, NULL, 0, &kick_TaskHandle);
-  //xTaskCreate(print_status, "print_status", 100, NULL, 2, &print_TaskHandle);
-  xTaskCreate(RF_send, "RF_send", 100, NULL, 0, &radio_TaskHandle);
+  ///create 3 task in FreeRTOS
+  // xTaskCreate(read_gyro, "Read Gyro", 100, NULL, 3, &gyro_TaskHandle);
+  // xTaskCreate(ck_kick_bt, "ck_kick_bt", 100, NULL, 0, &kick_TaskHandle);
+  // //xTaskCreate(print_status, "print_status", 100, NULL, 2, &print_TaskHandle);
+  // xTaskCreate(RF_send, "RF_send", 100, NULL, 0, &radio_TaskHandle);
 }
 
 static void Detect_kick_bt()
@@ -171,10 +179,12 @@ uint8_t swap;
 
 void loop()
 {
+  read_gyro();
 }
 
 /* task read_gyro with priority 1 */
-static void read_gyro(void *pvParameters)
+// static void read_gyro(void *pvParameters)
+static void read_gyro()
 {
   vTaskSuspend(kick_TaskHandle);
   while (1)
