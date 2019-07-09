@@ -1,5 +1,5 @@
 /*
-	18/02/2019 by Long Tran:  create a test project to read x_gyro and y_gyro sensor. 
+  18/02/2019 by Long Tran:  create a test project to read x_gyro and y_gyro sensor. 
 */
 
 //#include "Arduino_FreeRTOS.h"
@@ -15,7 +15,7 @@
 
 #define CE 5        //pin CE on NRF24L01
 #define CSN 10      //pin CSN on NRF24L01
-#define PLAYER_NO 1 //choose from 1 - 12
+#define PLAYER_NO 9 //choose from 1 - 12
 
 // MOSI: pin 11
 //  MISO: pin 12
@@ -125,7 +125,7 @@ void setup()
   ///set up NRF24L01
   radio.begin();
 
-  radio.openWritingPipe(address[PLAYER_NO % 6]);
+  radio.openWritingPipe(address[(PLAYER_NO-1) % 6]);
   // radio.openWritingPipe(address[0]);
   // radio.setPALevel(RF24_PA_MIN);
   radio.setPALevel(RF24_PA_LOW);
@@ -370,3 +370,4 @@ static void RF_send(void *pvParameters)
     // delay(50);
   }
 }
+
