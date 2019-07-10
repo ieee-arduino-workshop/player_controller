@@ -3,6 +3,7 @@
   sensor.
 */
 
+
 //#include "Arduino_FreeRTOS.h"
 
 //#include "timers.h"
@@ -11,6 +12,7 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 // #include <semphr.h>
+
 #include "MPU6050.h"
 #include "packet.h" //call gyro sensor library
 
@@ -45,6 +47,7 @@ accel_t_gyro_union accel_t_gyro;
 // create semaphore to protect data read, write.
 // SemaphoreHandle_t binSemaphore_A = NULL;
 
+
 // TaskHandle_t gyro_TaskHandle;
 // TaskHandle_t kick_TaskHandle;
 // TaskHandle_t print_TaskHandle;
@@ -70,6 +73,7 @@ void initGyro()
   //    Clock source at internal 8MHz
   //    The device is in sleep mode.
   //
+
   gyro_error_check = MPU6050_read(MPU6050_WHO_AM_I, &c, 1);
 
   // no gyro_error_check
@@ -84,10 +88,12 @@ void initGyro()
   {
     Serial.println("Error in reading GYRO [-911]");
   }
+
   // According to the datasheet, the 'sleep' bit
   // should read a '1'.
   // That bit has to be cleared, since the sensor
   // is in sleep mode at power-up.
+
   gyro_error_check = MPU6050_read(MPU6050_PWR_MGMT_1, &c, 1);
   if (!gyro_error_check) // similar to gyro_error_check ==0
   {
@@ -133,11 +139,13 @@ void setup()
   initGyro();
   initNRF24();
 
+
   // Setting the pins
   //  Initialising the LED as an output for testing purposes
   //  Initialsing the button as an input
   pinMode(led_pin, OUTPUT);
   pinMode(button_pin, INPUT);
+
 
   /* Create binary semaphore */
   // // vSemaphoreCreateBinary(binSemaphore_A);
@@ -398,3 +406,4 @@ void loop()
   // vTaskDelay(200 / portTICK_PERIOD_MS);
   delay(200);
 }
+
