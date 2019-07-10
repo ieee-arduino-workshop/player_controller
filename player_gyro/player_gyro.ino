@@ -158,34 +158,19 @@ void setup()
   // xTaskCreate(sendRF, "sendRF", 100, NULL, 0,&radio_TaskHandle);
 }
 
-// static void Detect_kick_bt() {
-//   BaseType_t taskYieldRequired = 0;
-//   if (DEBUG) {
-//     Serial.println(F("ISR Resuming task ck_kick_bt"));
-//   }
-//   taskYieldRequired = xTaskResumeFromISR(kick_TaskHandle);
-//   if (DEBUG) {
-//     Serial.println(F("Leaving ISR"));
-//   }
-//   if (taskYieldRequired == 1) {
-//     taskYIELD();
-//   }
-// }
 
-// Swap all high and low bytes.
-// After this, the registers values are swapped,
-// Why has to swap?
-// The AVR chip (on the Arduino board) has the Low Byte
-// at the lower address.
-// But the MPU-6050 has a different order: High Byte at
-// lower address, so that has to be corrected.
-// write function SWAP
-// uint8_t swap;
-// #define SWAP(x, y) \
-//   swap = x;        \
-//   x = y;           \
-//   y = swap
-
+/**
+ * @brief write function SWAP
+ * 
+ * Swap all high and low bytes.
+ * After this, the registers values are swapped,
+ * Why has to swap?
+ * The AVR chip (on the Arduino board) has the Low Byte
+ * at the lower address.
+ * But the MPU-6050 has a different order: High Byte at
+ * lower address, so that has to be corrected.
+ * 
+ */
 static void swap(uint8_t *x, uint8_t *y)
 {
   uint8_t temp;
@@ -206,7 +191,7 @@ static void readGyro()
   // are not very stable. But they are fine for left-right,up-down
   // determination.
   gyro_error_check = MPU6050_read(MPU6050_ACCEL_XOUT_H, (uint8_t *)&accel_t_gyro,
-                       sizeof(accel_t_gyro));
+                                  sizeof(accel_t_gyro));
 
   // uncomment code below for debugging purposes.
   /*  Serial.print(F("Read accel, temp and gyro, gyro_error_check = "));
@@ -388,7 +373,6 @@ static void sendRF()
   // delay(50);
   // }
 }
-
 
 /**
  * @brief Kick interrupt function
