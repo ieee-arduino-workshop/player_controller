@@ -176,9 +176,11 @@ Serial.println(gyro_error_check,DEC);
   if (accel_t_gyro.value.x_gyro < -THRESHOLD) {
     Serial.print(F("RIGHT \t"));
     player_package.right = 1;
+    player_package.left = 0;
   } else if (accel_t_gyro.value.x_gyro > THRESHOLD) {
     Serial.print(F("LEFT  \t"));
     player_package.left = 1;
+    player_package.right = 0;
   } else {
     Serial.print(F("      \t"));
     // player_package.packet_data = player_package.packet_data & 0xFFE7 ;//
@@ -190,8 +192,10 @@ Serial.println(gyro_error_check,DEC);
   if (accel_t_gyro.value.y_gyro < -THRESHOLD) {
     Serial.print(F("UP   \t"));
     player_package.up = 1;
+    player_package.down = 0;
   } else if (accel_t_gyro.value.y_gyro > THRESHOLD) {
     Serial.print(F("DOWN  \t"));
+    player_package.up = 0;
     player_package.down = 1;
   } else {
     Serial.print(F("      \t"));
