@@ -10,13 +10,12 @@
  * 
  */
 
-
 #include <MPU6050.h>
 
 ///---------------------- ---------------------------------------------------------------------
 ///---------------------- variable for gyro library-----------------------------------------
 ///---------------------- ---------------------------------------------------------------------
-#define THRESHOLD   1000 // sensitivity value (-32767 to 32768) for direction decision
+#define THRESHOLD 1000 // sensitivity value (-32767 to 32768) for direction decision
 
 int gyro_error_check;
 
@@ -60,7 +59,7 @@ void initGyro()
   // is in sleep mode at power-up.
 
   gyro_error_check = MPU6050_read(MPU6050_PWR_MGMT_1, &return_data, 1);
-  if (!gyro_error_check) // if no error 
+  if (!gyro_error_check) // if no error
   {
     Serial.print(F("PWR_MGMT_1 : "));
     Serial.print(return_data, HEX);
@@ -127,51 +126,49 @@ Serial.println(gyro_error_check,DEC);
   swap(&accel_t_gyro.reg.x_gyro_h, &accel_t_gyro.reg.x_gyro_l);
   swap(&accel_t_gyro.reg.y_gyro_h, &accel_t_gyro.reg.y_gyro_l);
 
+  
+  ///print RAW value
+  Serial.print("x_gyro = ");
+  Serial.print(accel_t_gyro.value.x_gyro);
+  Serial.print("\ty_gyro = ");
+  Serial.print(accel_t_gyro.value.y_gyro);
+  Serial.print("\n");
+
+  ///*** we only demonstrate x and y gyro values. How about the rest? Time to practice now.
+
+  
+
+
+  
   // Determine direction
   // Compare x_gyro and y_gyro value to a THRESHOLD number - it can be
   // calibrated for the sensitivity process x_gyro
   if (accel_t_gyro.value.x_gyro < -THRESHOLD)
   {
     Serial.print(F("RIGHT \t"));
-    player_package.right = 1;
-    player_package.left = 0;
   }
   else if (accel_t_gyro.value.x_gyro > THRESHOLD)
   {
     Serial.print(F("LEFT  \t"));
-    player_package.left = 1;
-    player_package.right = 0;
   }
   else
   {
     Serial.print(F("      \t"));
-    // player_package.packet_data = player_package.packet_data & 0xFFE7 ;//
-    // 11111111 11100111;
-    player_package.left = 0;
-    player_package.right = 0;
   }
   // process y_gyro
   if (accel_t_gyro.value.y_gyro < -THRESHOLD)
   {
     Serial.print(F("UP   \t"));
-    player_package.up = 1;
-    player_package.down = 0;
   }
   else if (accel_t_gyro.value.y_gyro > THRESHOLD)
   {
     Serial.print(F("DOWN  \t"));
-    player_package.down = 1;
-    player_package.up = 0;
   }
   else
   {
     Serial.print(F("      \t"));
-    player_package.down = 0;
-    player_package.up = 0;
   }
 }
-
-
 
 /**
  * @brief Arduino setup function
@@ -194,8 +191,8 @@ void setup()
  */
 void loop()
 {
-  
+
   /// Read direction
-  readGyro();   
+  readGyro();
   delay(300);
 }
