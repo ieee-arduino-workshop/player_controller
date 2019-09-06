@@ -21,9 +21,9 @@
 // #include <semphr.h>
 
 #include <MPU6050.h>
-#include <packet.h>  //call gyro sensor library
+#include <packet.h> //call gyro sensor library
 
-#define PLAYER_NO 9  // choose from 1 - 12
+#define PLAYER_NO 1 // choose from 1 - 12
 
 // Global variables
 //  Constants variables
@@ -36,7 +36,7 @@ packet player_package;
 
 /// variable for gyro library
 #define THRESHOLD \
-  1000  // sensitivity value (-32767 to 32768) for direction decision
+  1000 // sensitivity value (-32767 to 32768) for direction decision
 int gyro_error_check;
 accel_t_gyro_union accel_t_gyro;
 
@@ -49,10 +49,9 @@ accel_t_gyro_union accel_t_gyro;
  *          SCK: pin 13
  *
  */
-
-#define CE 5          // pin CE on NRF24L01
-#define CSN 10        // pin CSN on NRF24L01
-RF24 radio(CE, CSN);  // CE, CSN
+#define CE 5         // pin CE on NRF24L01 to pin 5 on Arduino
+#define CSN 10       // pin CSN on NRF24L01 to pin 10 on Arduino
+RF24 radio(CE, CSN); // CE, CSN
 
 /** one NRF24 can received maximum 6 different pipes.
  * address[0-5]
@@ -67,7 +66,8 @@ RF24 radio(CE, CSN);  // CE, CSN
 const uint64_t address[] = {0x7878787878LL, 0xB3B4B5B6F1LL, 0xB3B4B5B6CDLL,
                             0xB3B4B5B6A3LL, 0xB3B4B5B60FLL, 0xB3B4B5B605LL};
 
-void initGyro() {
+void initGyro()
+{
   // the variable below store the return data from MPU6050_read() function
   uint8_t c;
 
@@ -84,12 +84,15 @@ void initGyro() {
   gyro_error_check = MPU6050_read(MPU6050_WHO_AM_I, &c, 1);
 
   // no gyro_error_check
-  if (gyro_error_check == 0) {
+  if (gyro_error_check == 0)
+  {
     Serial.print(F("WHO_AM_I : "));
     Serial.print(c, HEX);
     Serial.print(F(", gyro_error_check = "));
     Serial.println(gyro_error_check, DEC);
-  } else {
+  }
+  else
+  {
     Serial.println("Error in reading GYRO [-911]");
   }
 
@@ -99,26 +102,32 @@ void initGyro() {
   // is in sleep mode at power-up.
 
   gyro_error_check = MPU6050_read(MPU6050_PWR_MGMT_1, &c, 1);
-  if (!gyro_error_check)  // similar to gyro_error_check ==0
+  if (!gyro_error_check) // similar to gyro_error_check ==0
   {
     Serial.print(F("PWR_MGMT_1 : "));
     Serial.print(c, HEX);
     Serial.print(F(", gyro_error_check = "));
     Serial.println(gyro_error_check, DEC);
-  } else {
+  }
+  else
+  {
     Serial.println("Error in reading GYRO [-912]");
   }
   // Clear the 'sleep' bit to start the sensor.
   gyro_error_check = MPU6050_write_reg(MPU6050_PWR_MGMT_1, 0);
   // if write successfully
-  if (!gyro_error_check) {
+  if (!gyro_error_check)
+  {
     Serial.println("Clear the 'sleep' bit successfully [913]");
-  } else {
+  }
+  else
+  {
     Serial.println("Fail to clear the 'sleep' bit [-914]");
   }
 }
 
-void initNRF24() {
+void initNRF24()
+{
   /// set up NRF24L01
   radio.begin();
 
@@ -141,7 +150,8 @@ void initNRF24() {
  * lower address, so that has to be corrected.
  *
  */
-static void swap(uint8_t *x, uint8_t *y) {
+static void swap(uint8_t *x, uint8_t *y)
+{
   uint8_t temp;
   temp = *x;
   *x = *y;
@@ -150,7 +160,8 @@ static void swap(uint8_t *x, uint8_t *y) {
 
 /* task readGyro with priority 1 */
 // static void readGyro(void *pvParameters)
-static void readGyro() {
+static void readGyro()
+{
   // Read the raw values.
   // Read 4 bytes at once,
   // containing x_gyro (2 bytes) and y_gyro (2 bytes).
@@ -173,15 +184,20 @@ Serial.println(gyro_error_check,DEC);
   // Determine direction
   // Compare x_gyro and y_gyro value to a THRESHOLD number - it can be
   // calibrated for the sensitivity process x_gyro
-  if (accel_t_gyro.value.x_gyro < -THRESHOLD) {
+  if (accel_t_gyro.value.x_gyro < -THRESHOLD)
+  {
     Serial.print(F("RIGHT \t"));
     player_package.right = 1;
     player_package.left = 0;
-  } else if (accel_t_gyro.value.x_gyro > THRESHOLD) {
+  }
+  else if (accel_t_gyro.value.x_gyro > THRESHOLD)
+  {
     Serial.print(F("LEFT  \t"));
     player_package.left = 1;
     player_package.right = 0;
-  } else {
+  }
+  else
+  {
     Serial.print(F("      \t"));
     // player_package.packet_data = player_package.packet_data & 0xFFE7 ;//
     // 11111111 11100111;
@@ -189,24 +205,32 @@ Serial.println(gyro_error_check,DEC);
     player_package.right = 0;
   }
   // process y_gyro
-  if (accel_t_gyro.value.y_gyro < -THRESHOLD) {
+  if (accel_t_gyro.value.y_gyro < -THRESHOLD)
+  {
     Serial.print(F("UP   \t"));
     player_package.up = 1;
     player_package.down = 0;
-  } else if (accel_t_gyro.value.y_gyro > THRESHOLD) {
+  }
+  else if (accel_t_gyro.value.y_gyro > THRESHOLD)
+  {
     Serial.print(F("DOWN  \t"));
-    player_package.up = 0;
     player_package.down = 1;
-  } else {
+    player_package.up = 0;
+  }
+  else
+  {
     Serial.print(F("      \t"));
     player_package.down = 0;
     player_package.up = 0;
   }
 
   // print shoot status
-  if (player_package.kick == 1) {
+  if (player_package.kick == 1)
+  {
     Serial.print(F("\t SHOOT \n"));
-  } else {
+  }
+  else
+  {
     Serial.print(F("\n"));
   }
 }
@@ -217,7 +241,8 @@ Serial.println(gyro_error_check,DEC);
  * @param Data contain: 3-bit reserved
  * |Right-bit|Left-bit|Down-bit|Up-bit|Kick-bit|8-bit ID|
  */
-static void printStatus() {
+static void printStatus()
+{
   Serial.println("---RLDUK|--ID--|");
   Serial.println(player_package.packet_data, BIN);
 }
@@ -226,7 +251,8 @@ static void printStatus() {
  * @brief send RF function
  *
  */
-static void sendRF() {
+static void sendRF()
+{
   radio.write(&player_package.packet_data, 2);
 
   /// Debugging package data
@@ -235,7 +261,8 @@ static void sendRF() {
   Serial.println(player_package.packet_data, HEX);
 
   // reset kick
-  if (player_package.kick == 1) {
+  if (player_package.kick == 1)
+  {
     player_package.kick = 0;
     digitalWrite(led_pin, LOW);
   }
@@ -245,7 +272,8 @@ static void sendRF() {
  * @brief Kick interrupt function
  *
  */
-static void kickISR() {
+static void kickISR()
+{
   // Turn ON the LED
   digitalWrite(led_pin, HIGH);
 
@@ -258,7 +286,8 @@ static void kickISR() {
  * Only run once.
  *
  */
-void setup() {
+void setup()
+{
   player_package.packet_data = 0xFF00 + PLAYER_NO;
   // Initialize serial port for monitoring
   Serial.begin(115200);
@@ -275,12 +304,13 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(button_pin), kickISR, RISING);
 }
 
-void loop() {
+void loop()
+{
   // Serial.println("loop::before call readGyro()");
   readGyro();
   // Serial.println("loop::before call printStatus()");
   printStatus();
   // Serial.println("loop::before call sendRF()");
   sendRF();
-  delay(200);
+  delay(300);
 }
