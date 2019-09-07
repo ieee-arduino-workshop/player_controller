@@ -12,7 +12,7 @@
 
 ///call object mpu6050
 MPU6050 mpu6050(Wire);
-uint16_t gyro_x, gyro_y;
+
 /****************** User Config ***************************/
 /***      Set this radio as radio number 0 or 1         ***/
 bool radioNumber = 0;
@@ -73,8 +73,9 @@ void loop()
 {
   //keep updating gyrodata
   mpu6050.update();
-  gyro_x = mpu6050.getGyroX();
-  gyro_y = mpu6050.getGyroY();
+  data gyro_data_send;
+  gyro_data_send.gyro_x = mpu6050.getGyroX();
+  gyro_data_send.gyro_y = mpu6050.getGyroY();
   /****************** Ping Out Role ***************************/
   if (role == 1)
   {
@@ -86,16 +87,11 @@ void loop()
     unsigned long start_time = micros(); // Take the time, and send it.  This will block until complete
 
     ///send GyroX via RF24
-    if (!radio.write(&gyro_x, 2))
+    if (!radio.write(&gyro_data_send, sizeof(gyro_data_send)))
     {
       Serial.println(F("failed"));
     }
-
-    //send GyroX via RF24
-    if (!radio.write(&gyro_y, 2))
-    {
-      Serial.println(F("failed"));
-    }
+   
     radio.startListening(); // Now, continue listening
 
     unsigned long started_waiting_at = micros(); // Set up a timeout period, get the current microseconds
@@ -153,7 +149,7 @@ void loop()
       radio.startListening();                        // Now, resume listening so we catch the next packets.
       Serial.print(F("received: gyro_x =  "));
       Serial.print(receive_data.gyro_x);
-      Serial.print(F("received: gyro_y =  "));
+      Serial.print(F("\treceived: gyro_y =  "));
       Serial.println(receive_data.gyro_y);
     }
   }
