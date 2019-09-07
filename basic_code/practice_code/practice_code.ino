@@ -26,15 +26,17 @@ byte addresses[][6] = {"2Node", "1Node"};
 // Used to control whether this node is sending or receiving
 bool role = 0;
 
-//
-typedef struct data
-{
-  uint16_t gyro_x;
-  uint16_t gyro_y;
-};
+typedef union {
+  uint32_t gyro_data;
+  struct
+  {
+    uint16_t gyro_x;
+    uint16_t gyro_y;
+  };
+} data;
 
 data receive_data;
-
+data gyro_data_send;
 void setup()
 {
   Serial.begin(115200);
@@ -73,7 +75,7 @@ void loop()
 {
   //keep updating gyrodata
   mpu6050.update();
-  data gyro_data_send;
+
   gyro_data_send.gyro_x = mpu6050.getGyroX();
   gyro_data_send.gyro_y = mpu6050.getGyroY();
   /****************** Ping Out Role ***************************/
@@ -87,11 +89,11 @@ void loop()
     unsigned long start_time = micros(); // Take the time, and send it.  This will block until complete
 
     ///send GyroX via RF24
-    if (!radio.write(&gyro_data_send, sizeof(gyro_data_send)))
+    if (!radio.write(&gyro_data_send.gyro_data, sizeof(int)))
     {
       Serial.println(F("failed"));
     }
-   
+
     radio.startListening(); // Now, continue listening
 
     unsigned long started_waiting_at = micros(); // Set up a timeout period, get the current microseconds
@@ -127,7 +129,7 @@ void loop()
     }
 
     // Try again 200ms later
-    delay(500);
+    delay(1000);
   }
 
   /****************** Pong Back Role ***************************/
@@ -140,13 +142,13 @@ void loop()
     {
       // Variable for the received timestamp
       while (radio.available())
-      {                                               // While there is data ready
-        radio.read(&receive_data, sizeof(receive_data)); // Get the payload
+      {                                                   // While there is data ready
+        radio.read(&receive_data.gyro_data, sizeof(int)); // Get the payload
       }
 
-      radio.stopListening();                         // First, stop listening so we can talk
-      radio.write(&receive_data, sizeof(receive_data)); // Send the final one back.
-      radio.startListening();                        // Now, resume listening so we catch the next packets.
+      radio.stopListening();                             // First, stop listening so we can talk
+      radio.write(&receive_data.gyro_data, sizeof(int)); // Send the final one back.
+      radio.startListening();                            // Now, resume listening so we catch the next packets.
       Serial.print(F("received: gyro_x =  "));
       Serial.print(receive_data.gyro_x);
       Serial.print(F("\treceived: gyro_y =  "));
