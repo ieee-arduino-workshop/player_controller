@@ -12,7 +12,7 @@
 
 ///call object mpu6050
 MPU6050 mpu6050(Wire);
-uint16_t gyro_x,gyro_y;
+uint16_t gyro_x, gyro_y;
 /****************** User Config ***************************/
 /***      Set this radio as radio number 0 or 1         ***/
 bool radioNumber = 0;
@@ -25,6 +25,15 @@ byte addresses[][6] = {"2Node", "1Node"};
 
 // Used to control whether this node is sending or receiving
 bool role = 0;
+
+//
+typedef struct data
+{
+  uint16_t gyro_x;
+  uint16_t gyro_y;
+};
+
+data receive_data;
 
 void setup()
 {
@@ -122,28 +131,30 @@ void loop()
     }
 
     // Try again 200ms later
-    delay(200);
+    delay(500);
   }
 
   /****************** Pong Back Role ***************************/
 
   if (role == 0)
   {
-    unsigned long got_time;
+    // unsigned long got_time;
 
     if (radio.available())
     {
       // Variable for the received timestamp
       while (radio.available())
       {                                               // While there is data ready
-        radio.read(&got_time, sizeof(unsigned long)); // Get the payload
+        radio.read(&receive_data, sizeof(receive_data)); // Get the payload
       }
 
       radio.stopListening();                         // First, stop listening so we can talk
-      radio.write(&got_time, sizeof(unsigned long)); // Send the final one back.
+      radio.write(&receive_data, sizeof(receive_data)); // Send the final one back.
       radio.startListening();                        // Now, resume listening so we catch the next packets.
-      Serial.print(F("Sent response "));
-      Serial.println(got_time);
+      Serial.print(F("received: gyro_x =  "));
+      Serial.print(receive_data.gyro_x);
+      Serial.print(F("received: gyro_y =  "));
+      Serial.println(receive_data.gyro_y);
     }
   }
 
